@@ -2,22 +2,39 @@
 
 import ApiService from './js/api_service';
 import Notiflix from 'notiflix';
+import { showMarkup } from './js/markup';
+import { divGallery } from './js/markup';
 
 const inputForm = document.querySelector('form#search-form');
-const divGallery = document.querySelector('div.gallery');
+const loadMore = document.querySelector('.load-more');
 const apiService = new ApiService();
 
-inputForm.addEventListener('click', onSubmitForm);
+inputForm.addEventListener('submit', onSubmitForm);
+loadMore.addEventListener('click', onLoadMore);
 
 async function onSubmitForm(event) {
   event.preventDefault();
 
   try {
+    apiService.page = 1;
+    divGallery.innerHTML = '';
+    loadMore.classList.add('hidden');
+
     apiService.query = event.currentTarget.elements.searchQuery.value;
     const responseBackend = await apiService.sendRequest();
-    // console.log(responseBackend);
-    showUserAmountResults(responseBackend.data.totalHits);
+
+    if (!responseBackend.data.totalHits) {
+      Notiflix.Notify.warning(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+
+      return;
+    }
+    if (responseBackend.data.totalHits > 40) {
+      loadMore.classList.remove('hidden');
+    }
     showMarkup(responseBackend.data.hits);
+    showUserAmountResults(responseBackend.data.totalHits);
   } catch (error) {
     console.log(error);
   }
@@ -27,37 +44,15 @@ function showUserAmountResults(result) {
   Notiflix.Notify.info(`Hooray! We found ${result} images.`);
 }
 
-function showMarkup(arrayOfQuery) {
-  console.log(arrayOfQuery);
-  const mapArrayResult = arrayOfQuery.map(el => renderSingleElement(el));
-  divGallery.insertAdjacentHTML('beforeend', mapArrayResult.join(''));
-}
-
-function renderSingleElement({
-  webformatURL,
-  largeImageURL,
-  tags,
-  likes,
-  views,
-  comments,
-  downloads,
-}) {
-  //   console.log(singleEl);
-  return `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes ${likes}</b>
-    </p>
-    <p class="info-item">
-      <b>Views ${views}</b>
-    </p>
-    <p class="info-item">
-      <b>Comments ${comments}</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads ${downloads}</b>
-    </p>
-  </div>
-</div>`;
+async function onLoadMore() {
+  try {
+    apiService.page += 1;
+    const apiServiceResponce = await apiService.sendRequest();
+    showMarkup(apiServiceResponce.data.hits);
+    if (apiServiceResponce.data.hits.length < 40) {
+      loadMore.classList.add('hidden');
+    }
+  } catch (error) {
+    console.log(error);
+  }
 }

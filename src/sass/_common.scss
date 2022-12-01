@@ -1,1 +1,22 @@
 @import '~node_modules/modern-normalize/modern-normalize.css';
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+img {
+  display: block;
+
+  width: 100%;
+}
+
+.photo-card {
+  max-width: 60%;
+}
+
+.hidden {
+  display: none;
+}
