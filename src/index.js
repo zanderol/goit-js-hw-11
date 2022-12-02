@@ -2,6 +2,7 @@
 
 import ApiService from './js/api_service';
 import Notiflix from 'notiflix';
+
 import { showMarkup } from './js/markup';
 import { divGallery } from './js/markup';
 
@@ -21,27 +22,31 @@ async function onSubmitForm(event) {
     loadMore.classList.add('hidden');
 
     apiService.query = event.currentTarget.elements.searchQuery.value;
-    const responseBackend = await apiService.sendRequest();
+    if (!apiService.query) {
+      Notiflix.Notify.warning(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    }
 
+    const responseBackend = await apiService.sendRequest();
     if (!responseBackend.data.totalHits) {
       Notiflix.Notify.warning(
         'Sorry, there are no images matching your search query. Please try again.'
       );
-
       return;
     }
     if (responseBackend.data.totalHits > 40) {
       loadMore.classList.remove('hidden');
     }
+    Notiflix.Notify.success(
+      `Hooray! We found ${responseBackend.data.totalHits} images.`
+    );
     showMarkup(responseBackend.data.hits);
-    showUserAmountResults(responseBackend.data.totalHits);
+    // showUserAmountResults(responseBackend.data.totalHits);
   } catch (error) {
     console.log(error);
   }
-}
-
-function showUserAmountResults(result) {
-  Notiflix.Notify.info(`Hooray! We found ${result} images.`);
 }
 
 async function onLoadMore() {
@@ -50,6 +55,9 @@ async function onLoadMore() {
     const apiServiceResponce = await apiService.sendRequest();
     showMarkup(apiServiceResponce.data.hits);
     if (apiServiceResponce.data.hits.length < 40) {
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
       loadMore.classList.add('hidden');
     }
   } catch (error) {

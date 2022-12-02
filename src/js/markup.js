@@ -1,8 +1,16 @@
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+
 export const divGallery = document.querySelector('div.gallery');
+
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+});
 
 export function showMarkup(arrayOfQuery) {
   const mapArrayResult = arrayOfQuery.map(el => renderSingleElement(el));
   divGallery.insertAdjacentHTML('beforeend', mapArrayResult.join(''));
+  lightbox.refresh();
 }
 
 function renderSingleElement({
@@ -15,7 +23,9 @@ function renderSingleElement({
   downloads,
 }) {
   //   console.log(singleEl);
-  return `<div class="photo-card">
+
+  return `<a href="${largeImageURL}">
+  <div class="photo-card">
   <img src="${webformatURL}" alt="${tags}" loading="lazy" />
   <div class="info">
     <p class="info-item">
@@ -31,5 +41,6 @@ function renderSingleElement({
       <b>Downloads ${downloads}</b>
     </p>
   </div>
-</div>`;
+</div>
+</a>`;
 }
